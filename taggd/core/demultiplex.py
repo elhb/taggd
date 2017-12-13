@@ -131,6 +131,10 @@ def main(argv=None):
                         'The tag must be a two-letter string and be present for all records in the input file.\n' \
                         'Can only be used with SAM or BAM formatted input files.', 
                         default=None, metavar="[str]")
+    parser.add_argument('--use-samtools-merge', 
+                        help="When merging files from subprocesses\n" \
+                        "use a samtools call to do the merge instead of pysam.",
+                        default=False, action='store_true')
     parser.add_argument('--version', action='version', version='%(prog)s ' + "0.3.2")
 
     # Parse
@@ -263,7 +267,8 @@ def main(argv=None):
                              fn_ambig,
                              fn_unmatched,
                              fn_results,
-                             options.subprocesses)
+                             options.subprocesses,
+                             options.use_samtools_merge)
     print "# ...finished demultiplexing"
     print "# Wall time in secs: " + str(time.time() - start_time)
     print str(stats)

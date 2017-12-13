@@ -14,6 +14,7 @@ from collections import deque
 import taggd.core.statistics as statistics
 import taggd.core.demultiplex_sub_functions as sub
 from cpython cimport bool
+import subprocess
 
 
 def demultiplex(str filename_reads,
@@ -21,7 +22,8 @@ def demultiplex(str filename_reads,
                 str filename_ambig,
                 str filename_unmatched,
                 str filename_results,
-                int subprocesses):
+                int subprocesses,
+                bool use_samtools):
     """
     Demultiplexes the contents of a reads file by dividing the work into
     parallel subprocesses, each writing its own file, then
@@ -81,18 +83,18 @@ def demultiplex(str filename_reads,
 
     # Merge files.
     if filename_matched != None:
-        merge_files(filename_matched, fn_matched)
+        merge_files(filename_matched, fn_matched, use_samtools)
     if filename_ambig != None:
-        merge_files(filename_ambig, fn_ambig)
+        merge_files(filename_ambig, fn_ambig, use_samtools)
     if filename_unmatched != None:
-        merge_files(filename_unmatched, fn_unmatched)
+        merge_files(filename_unmatched, fn_unmatched, use_samtools)
     if filename_results != None:
-        merge_files(filename_results, fn_res)
+        merge_files(filename_results, fn_res, use_samtools)
 
     # Merge stats
     return merge_stats(statss)
 
-cdef merge_files(str filename, list part_names):
+cdef merge_files(str filename, list part_names, samtools):
     """
     Merges and deletes temporary files.
     """
@@ -107,17 +109,21 @@ cdef merge_files(str filename, list part_names):
             for ln in fileinput.input(part_names):
                 f.write(ln)
     elif frmt == "sam" or frmt == "bam":
-        write_attrib = "wh" if frmt == "sam" else "wb"
-        read_attrib = "r" if frmt == "sam" else "rb" 
-        with ps.AlignmentFile(filename, write_attrib, 
-                              template=ps.AlignmentFile(part_names[0], 
-                                                        read_attrib,
-                                                        check_header=True, 
-                                                        check_sq=False)) as f:
-            for part in part_names:
-                with ps.AlignmentFile(part, read_attrib, check_header=True, check_sq=False) as p:
-                    for rec in p:
-                        f.write(rec)
+        if samtools:
+            command = 'samtools merge -@ {} {} {}'.format( mp.cpu_count(), filename, ' '.join(part_names) )
+            subprocess.check_call(command, shell=True)
+        else:
+            write_attrib = "wh" if frmt == "sam" else "wb"
+            read_attrib = "r" if frmt == "sam" else "rb" 
+            with ps.AlignmentFile(filename, write_attrib, 
+                                  template=ps.AlignmentFile(part_names[0], 
+                                                            read_attrib,
+                                                            check_header=True, 
+                                                            check_sq=False)) as f:
+                for part in part_names:
+                    with ps.AlignmentFile(part, read_attrib, check_header=True, check_sq=False) as p:
+                        for rec in p:
+                            f.write(rec)
     else:
         raise ValueError("Unknown file format to merge")
 

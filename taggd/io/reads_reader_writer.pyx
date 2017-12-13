@@ -133,7 +133,7 @@ class ReadsReaderWriter():
         elif self.file_type == SAM:
             return ps.AlignmentFile(outfile_name, "wh", header=self.infile_header)
         elif self.file_type == BAM:
-            return ps.AlignmentFile(outfile_name, "wb", header=self.infile_header)
+            return ps.AlignmentFile(outfile_name, "wbu", header=self.infile_header)
         else:
             raise ValueError("Unknown file format for writer")
 
