@@ -54,7 +54,7 @@ else:
 
 setup(
 	name = "taggd",
-	version = '0.3.2',
+	version = '0.3.3_modified',
 	author = 'Joel Sjostrand',
 	author_email = 'joel.sjostrand@scilifelab.se, jose.fernandez.navarro@scilifelab.se',
 	license = 'Open BSD',
