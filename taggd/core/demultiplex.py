@@ -135,7 +135,7 @@ def main(argv=None):
                         help="When merging files from subprocesses\n" \
                         "use a samtools call to do the merge instead of pysam.",
                         default=False, action='store_true')
-    parser.add_argument('--version', action='version', version='%(prog)s ' + "0.3.2")
+    parser.add_argument('--version', action='version', version='%(prog)s ' + "0.3.3.1")
 
     # Parse
     if argv == None:
