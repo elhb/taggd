@@ -110,7 +110,7 @@ cdef merge_files(str filename, list part_names, samtools):
                 f.write(ln)
     elif frmt == "sam" or frmt == "bam":
         if samtools:
-            command = 'samtools merge -@ {} {} {}'.format( mp.cpu_count(), filename, ' '.join(part_names) )
+            command = 'samtools merge -c -p -@ {} {} {}'.format( mp.cpu_count(), filename, ' '.join(part_names) )
             subprocess.check_call(command, shell=True)
         else:
             write_attrib = "wh" if frmt == "sam" else "wb"
